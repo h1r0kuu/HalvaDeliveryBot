@@ -135,7 +135,7 @@ bot.action("phone", async ctx => {
 async function start() {
     bot.telegram.getMe().then( async bot_info => {
         let currTime = new Date();
-        console.log(`BOT SUCCESSFULY STARTED ${await utils.currTime()} `+ bot_info.first_name)
+        console.log(`BOT SUCCESSFULY STARвввTED ${await utils.currTime()} `+ bot_info.first_name)
     })
     try {
         await sequelize.authenticate()
