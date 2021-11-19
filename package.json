@@ -1,0 +1,23 @@
+{
+  "name": "botforcafe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "dev": "nodemon bot.js",
+    "start": "node bot.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "dotenv": "^10.0.0",
+    "moment": "^2.29.1",
+    "nodemon": "^2.0.15",
+    "pg": "^8.7.1",
+    "require-all": "^3.0.0",
+    "sequelize": "^6.9.0",
+    "telegraf": "^4.4.2",
+    "telegram-keyboard": "^2.2.8"
+  }
+}
