@@ -5,10 +5,6 @@ module.exports = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process
     port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT,
     logging: false,
-    dialectOptions: {
-        ssl: {
-            require: true, // This will help you. But you will see nwe error
-            rejectUnauthorized: false // This line will fix new error
-        }
-    },
+    ssl: true
+
 })
