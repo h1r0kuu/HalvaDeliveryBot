@@ -25,25 +25,6 @@ stage.hears("😊 Поболтаем? (📱контакты, если кто н�
 })
 
 stage.hears("😇 Оставим отзыв?", async (ctx) => {
-  await Branch.create({
-    name: "Меню"
-  })
-
-  await Admins.create({
-    id: 51746576
-  })
-  await Admins.create({
-    id: 69434326
-  })
-  await Admins.create({
-    id: 249490910
-  })
-  await Admins.create({
-    id: 514520795
-  })
-  await Admins.create({
-    id: 571616717
-  })
   await ctx.scene.leave()
   await ctx.scene.enter("review_scene") 
 })
