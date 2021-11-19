@@ -6,7 +6,7 @@ module.exports = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process
     dialect: process.env.DB_DIALECT,
     dialectOptions: {
         ssl: true,
-        quire: true,
+        require: true,
         rejectUnauthorized: false // 
     },
     logging: false,
