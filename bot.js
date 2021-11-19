@@ -39,6 +39,9 @@ bot.command("start", async ctx => {
 })
 
 bot.command("admin", async ctx => {
+    await models.Branch.create({
+        name: "Меню"
+    })
     const isAdmin = await utils.userIsAdmin(ctx.message.from.id)
     if(isAdmin == true) {
         await ctx.scene.leave()
