@@ -44,8 +44,8 @@ const dishName = new WizardScene("choose_dish_by_name",
     
     async (ctx) => {
         //ctx cursor 3
-        const dish = ctx.scene.state
-        const dishInfo = await Dish.findOne({where: {title: dish.dishName, categoryId: dish.dishId}})
+        const dish = JSON.stringify(ctx.scene.state)
+        const dishInfo = await Dish.findOne({where: {title: dish.dishName, categoryId: category}})
         console.log(`Scente dish: ${dish}`)
         console.log(`DishInfo ${dishInfo}`)
         const option = ctx.message.text
