@@ -99,12 +99,12 @@ const dishName = new WizardScene("choose_dish_by_name",
         const description = ctx.message.text
         try {
             const dish = ctx.scene.state
+            const dishInfo = await Dish.findOne({where: {title: dish.dishName, categoryId: dish.category}})
             if(description.length > 10) {
-                let dishInfo = await Dish.findOne({where: {title: dish.dishName, categoryId: dish.category}})
                 await ctx.scene.leave()
-                dishInfo.description = dish.description
+                dishInfo.description = description
                 await dishInfo.save()
-                await ctx.reply("Состав успешно изменено!", await replyKeyboard.adminPanel())
+                await ctx.reply("Состав успешно изменён!", await replyKeyboard.adminPanel())
             } else {
                 await ctx.reply("Слишком короткий состав")
             }
