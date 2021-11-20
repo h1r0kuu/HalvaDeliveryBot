@@ -46,6 +46,8 @@ const dishName = new WizardScene("choose_dish_by_name",
         //ctx cursor 3
         const dish = ctx.scene.state
         const dishInfo = await Dish.findOne({where: {title: dish.dishName, categoryId: dish.dishId}})
+        console.log(`Scente dish: ${dish}`)
+        console.log(`DishInfo ${dishInfo}`)
         const option = ctx.message.text
         if(option == "Изменить фото") {
             await ctx.replyWithPhoto(dishInfo.file_id,{caption: `Отправьте новое фото, текущее фото:`})
