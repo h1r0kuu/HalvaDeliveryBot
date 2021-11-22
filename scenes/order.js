@@ -30,9 +30,11 @@ const orderScene = new WizardScene("order",
     async(ctx) => {
         try {
             let address = ''
+            let lat = ''
+            let long = ''
             if(ctx.message.location) {
-                const lat = ctx.message.location.latitude
-                const long = ctx.message.location.longitude
+                lat = ctx.message.location.latitude
+                long = ctx.message.location.longitude
                 ctx.scene.state.latitude = lat
                 ctx.scene.state.longitude = long
                 address = await(await utils.getUserAddress(lat, long))[0]
@@ -42,9 +44,12 @@ const orderScene = new WizardScene("order",
             ctx.scene.state.address = address
             const isExist = await Address.findOne({where: {customerUserId: ctx.message.from.id, address_name: address}})
             if(isExist === null) {
+
                 await Address.create({
                     customerUserId: ctx.message.from.id,
-                    address_name: address
+                    address_name: address,
+                    address: (typeof lat !== 'undefined' && typeof long !== 'undefined') ? `${lat},${long}` : null
+
                 })
             }
             await ctx.wizard.selectStep(3);
@@ -101,11 +106,21 @@ const orderScene = new WizardScene("order",
                 if(!userData.address) {//ТУТ ОТПРАВЛЯТСЯ ДОЛЖНО В CHAT
                     await ctx.telegram.sendLocation(process.env.GROUP_ID, userData.latitude, userData.longitude)
                 }
+                // const addr = await Address.findOne({where: {customerUserId: ctx.message.from.id, address_name: userData.address}})
+                // console.log(addr)
+                // if(addr.address) {
+                //     const data = addr.address.split(",")
+                //     let lat = data[0]
+                //     let long = data[1]
+                //     console.log("HERE")
+                //     console.log(`lat: ${lat}\nlong: ${long}`)
+                //     await ctx.telegram.sendLocation(process.env.GROUP_ID, lat, long)
+                // }
                 userContext = await replyKeyboard.mainMenu()
                 userContext.parse_mode = "HTML"
                 await ctx.reply(`✅ Ваш заказ:
 💳 Способ оплаты: ${userData.paymentType}
-📞 Телефон: ${userData.phoneNumber}
+📞 Телефон: ${ (userData.phoneNumber[0] != '+') ? '+' + userData.phoneNumber : userData.phoneNumber }
 ${ (userData.address) ? "🏠 Адрес: " + userData.address : ""}
 
 ${text}
@@ -119,7 +134,7 @@ ${ (userData.addInfo) ? userData.addInfo : "Пользователь не ост
                 context.parse_mode = "HTML"
                 await ctx.telegram.sendMessage(process.env.GROUP_ID, `Заказ №${order.id}:
 💳 Способ оплаты: ${userData.paymentType}
-📞 Телефон: ${userData.phoneNumber}
+📞 Телефон: ${ (userData.phoneNumber[0] != '+') ? '+' + userData.phoneNumber : userData.phoneNumber }
 ${ (userData.address) ? "🏠 Адрес: " + userData.address : ""}
 
 ${text}
