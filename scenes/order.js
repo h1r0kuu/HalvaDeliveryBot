@@ -18,7 +18,9 @@ const orderScene = new WizardScene("order",
             if(ctx.message.contact) {
                 ctx.scene.state.phoneNumber = ctx.message.contact.phone_number
             } else {
-                ctx.scene.state.phoneNumber = ctx.message.text
+                if(ctx.message.text != "⬅️ назад") {
+                    ctx.scene.state.phoneNumber = ctx.message.text
+                }
             }
             await ctx.reply("Отправьте пожалуйста локацию", await replyKeyboard.sendLocation(ctx.message.from.id))
             return ctx.wizard.next()  
