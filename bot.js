@@ -34,6 +34,7 @@ bot.command("start", async ctx => {
             user_id: ctx.message.from.id
         })
     }
+   
     await ctx.reply("ℹОтлично! Оформим заказ вместе? 😃", await replyKeyboard.mainMenu())
     await ctx.scene.enter("choosing_food_scene")
 })
@@ -59,28 +60,85 @@ bot.on('pre_checkout_query', async (ctx) => {
 bot.on("message", async ctx => {
     const userTxt = ctx.message.text
     const userId = ctx.message.from.id
-    const isAdmin = await utils.userIsAdmin(userId)
-    if(isAdmin == true) {
-        if(userTxt == "Изменить продукт") {
-            await ctx.reply("Введите название продукта")
-            await ctx.scene.enter("choose_dish_by_name")
-        } else if(userTxt == "Добавить продукт") {
-            const catObj = await utils.getCategoryByBranch("Меню")
-            await ctx.reply("Выберите категорию для продукта", await replyKeyboard.createOnlyCategoryButtons(catObj.categories))
-            await ctx.scene.enter("create_dish_scene")
-        } else if(userTxt == "Удалить категорию") {
-            const catObj = await utils.getCategoryByBranch("Меню")
-            await ctx.reply("Выберите категорию для удаления", await replyKeyboard.createOnlyCategoryButtons(catObj.categories))
-            await ctx.scene.enter("delete_category_scene")
-        } else if(userTxt == "Добавить категорию") {
-            await ctx.reply("Введите название новой категории", await replyKeyboard.cancel())
-            await ctx.scene.enter("create_category_scene")
-        } else if(userTxt == "Сделать рассылку") {
-            await ctx.reply("Какой тип рассылки должен быть?", await replyKeyboard.mailing())
-            await ctx.scene.enter("mailing_scene")
-        } else {
-            await ctx.reply("Неизвестная команда", await replyKeyboard.mainMenu())
-            await ctx.scene.enter("choosing_food_scene")
+    if(ctx.message.chat.id == process.env.GROUP_ID) {
+        if(ctx.message.reply_to_message) {
+            const replyText = ctx.message.reply_to_message.text
+            const deliveryPrice = ctx.message.text.replace(" ", "")
+            if(!isNaN(deliveryPrice)) {
+                let orderReg = /Заказ №\d{1,6}/
+                let paymentTypeReg = /Способ оплаты: 💵 Наличные|💳 Payme/
+                let orderMatch = replyText.match(orderReg)
+                let paymentTypeMatch = replyText.match(paymentTypeReg)
+                const paymentType = paymentTypeMatch
+                const orderId = parseInt(orderMatch[0].split("№")[1])
+                if(orderId) {
+                    const providerToken = process.env.PAYME_TOKEN
+                    const order = await utils.getOrderInfo(orderId)
+                    let cart = await utils.getCartInfo2(order.customerUserId, orderId)
+                    let cartDishes = cart.cart_dishes
+                    let totalPrice = 0
+                    cartDishes.forEach(dish => {
+                        let price = dish.amount * dish.dish.price 
+                        totalPrice += price
+                    })
+                    totalPrice += parseInt(deliveryPrice)
+                    if(order.price_delivery == 0 || order.price_delivery === null) {
+                        if(paymentType == "💳 Payme") {
+                            let invoice = {
+                                chat_id: order.customerUserId, // Уникальный идентификатор целевого чата или имя пользователя целевого канала
+                                provider_token: providerToken, // токен выданный через бот @SberbankPaymentBot 
+                                start_parameter: 'get_access', //Уникальный параметр глубинных ссылок. Если оставить поле пустым, переадресованные копии отправленного сообщения будут иметь кнопку «Оплатить», позволяющую нескольким пользователям производить оплату непосредственно из пересылаемого сообщения, используя один и тот же счет. Если не пусто, перенаправленные копии отправленного сообщения будут иметь кнопку URL с глубокой ссылкой на бота (вместо кнопки оплаты) со значением, используемым в качестве начального параметра.
+                                title: `Оплата через: Payme`, // Название продукта, 1-32 символа
+                                description: `Сумма к оплате: ${totalPrice} сум.\nЧто бы оплатить нажми кнопку снизу`, // Описание продукта, 1-255 знаков
+                                currency: 'UZS', // Трехбуквенный код валюты ISO 4217
+                                prices: [{ label: 'Invoice Title', amount: parseInt(totalPrice) * 100}], // Разбивка цен, сериализованный список компонентов в формате JSON 100 копеек * 100 = 100 рублей
+                                payload: { // Полезные данные счета-фактуры, определенные ботом, 1–128 байт. Это не будет отображаться пользователю, используйте его для своих внутренних процессов.
+                                    unique_id: `${ctx.message.from.id}_${order.id}`,
+                                    provider_token: providerToken
+                                }
+                            }
+                            context = await replyKeyboard.pay()
+                            context.parse_mode = "HTML"
+                            await ctx.telegram.sendMessage(order.customerUserId, `Оплата через: <b>Payme</b>\nСумма к оплате: ${totalPrice} сум.(включая доставку ${deliveryPrice} сум.) \nЧто бы оплатить нажми кнопку \"✅ Оплатить\"`, context)
+                            await ctx.telegram.sendInvoice(order.customerUserId, invoice)
+                        } else {
+                            await ctx.telegram.sendMessage(order.customerUserId, `Курьер направляется к вам. Сумма доставки примерно - <b>${deliveryPrice} сум.</b>`, {parse_mode: "HTML"})
+                        }
+                    }
+                    await utils.updateDelivery(orderId, deliveryPrice)
+                }
+            } else {
+                await ctx.telegram.sendMessage(process.env.GROUP_ID, "Цена должна быть в цифровом формате")
+            }
+        }
+    } else {
+        const isAdmin = await utils.userIsAdmin(userId)
+        if(isAdmin == true) {
+            if(userTxt == "Изменить продукт") {
+                await ctx.reply("Введите название продукта")
+                await ctx.scene.enter("choose_dish_by_name")
+            } else if(userTxt == "Добавить продукт") {
+                const catObj = await utils.getCategoryByBranch("Меню")
+                await ctx.reply("Выберите категорию для продукта", await replyKeyboard.createOnlyCategoryButtons(catObj.categories))
+                await ctx.scene.enter("create_dish_scene")
+            } else if(userTxt == "Удалить категорию") {
+                const catObj = await utils.getCategoryByBranch("Меню")
+                await ctx.reply("Выберите категорию для удаления", await replyKeyboard.createOnlyCategoryButtons(catObj.categories))
+                await ctx.scene.enter("delete_category_scene")
+            } else if(userTxt == "Добавить категорию") {
+                await ctx.reply("Введите название новой категории", await replyKeyboard.cancel())
+                await ctx.scene.enter("create_category_scene")
+            } else if(userTxt == "Сделать рассылку") {
+                await ctx.reply("Какой тип рассылки должен быть?", await replyKeyboard.mailing())
+                await ctx.scene.enter("mailing_scene")
+            } else if(userTxt == "Количество клиентов") {
+                const userIds = await utils.getUserIds()
+                const clientNumbers = userIds.length
+                await ctx.reply("Количество клиентов - " + clientNumbers)
+            } else {
+                await ctx.reply("Неизвестная команда", await replyKeyboard.mainMenu())
+                await ctx.scene.enter("choosing_food_scene")
+            }
         }
     }
 })

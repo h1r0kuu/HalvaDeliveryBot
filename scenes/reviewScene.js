@@ -5,7 +5,6 @@ const {Customer} = require("../models/model")
 
 const reviewScene = new WizardScene("review_scene",
     async ctx => {
-        await ctx.reply("ℹ️Вы можете оценить наш сервис обслуживания или сообщить о возможной ошибке в боте", await replyKeyboard.back())
         return ctx.wizard.next()
     },
 

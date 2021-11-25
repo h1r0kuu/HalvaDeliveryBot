@@ -50,7 +50,7 @@ const orderScene = new WizardScene("order",
                 await Address.create({
                     customerUserId: ctx.message.from.id,
                     address_name: address,
-                    address: (typeof lat !== 'undefined' && typeof long !== 'undefined') ? `${lat},${long}` : null
+                    address: (!isNaN(lat) && !isNaN(lat)) ? `${lat},${long}` : null
 
                 })
             }
@@ -108,16 +108,17 @@ const orderScene = new WizardScene("order",
                 if(!userData.address) {//ТУТ ОТПРАВЛЯТСЯ ДОЛЖНО В CHAT
                     await ctx.telegram.sendLocation(process.env.GROUP_ID, userData.latitude, userData.longitude)
                 }
-                // const addr = await Address.findOne({where: {customerUserId: ctx.message.from.id, address_name: userData.address}})
-                // console.log(addr)
-                // if(addr.address) {
-                //     const data = addr.address.split(",")
-                //     let lat = data[0]
-                //     let long = data[1]
-                //     console.log("HERE")
-                //     console.log(`lat: ${lat}\nlong: ${long}`)
-                //     await ctx.telegram.sendLocation(process.env.GROUP_ID, lat, long)
-                // }
+                const addr = await Address.findOne({where: {customerUserId: ctx.message.from.id, address_name: userData.address}})
+                if(addr.address) {
+                    const data = addr.address.split(",")
+                    if(data.length > 1) {
+                        let lat = data[0]
+                        let long = data[1]
+                        if(!isNaN(parseInt(lat)) && !isNaN(parseInt(long))) {
+                            await ctx.telegram.sendLocation(process.env.GROUP_ID, lat, long)
+                        }   
+                    }
+                }
                 userContext = await replyKeyboard.mainMenu()
                 userContext.parse_mode = "HTML"
                 await ctx.reply(`✅ Ваш заказ:
@@ -132,7 +133,7 @@ ${text}
 📋 Комментарий:
 ${ (userData.addInfo) ? userData.addInfo : "Пользователь не оставил комментария"}`, userContext)
 
-                context = replyKeyboard.confirmAdmin(order.id, ctx.message.from.id)
+                // context = replyKeyboard.confirmAdmin(order.id, ctx.message.from.id)
                 context.parse_mode = "HTML"
                 await ctx.telegram.sendMessage(process.env.GROUP_ID, `Заказ №${order.id}:
 💳 Способ оплаты: ${userData.paymentType}
@@ -144,34 +145,12 @@ ${text}
 Приборы и салфетки нужны: <b>${servante}</b>
 
 📋 Комментарий:
-${ (userData.addInfo) ? userData.addInfo : "Пользователь не оставил комментария"}`, context )
-                
+${ (userData.addInfo) ? userData.addInfo : "Пользователь не оставил комментария"}
+
+Отправьте стоимость доставких в ответ на это сообщение`, context )
                 await ctx.scene.leave()
                 if(userData.paymentType != "💳 Payme") {
                     await ctx.reply(`Ваш заказ #${order.id} передан на обработку.\nСейчас Вам позвонит наш оператор.`, await replyKeyboard.mainMenu())
-                } else {
-                    const providerToken = process.env.PAYME_TOKEN
-
-                    let totalPrice = 0
-                    cartDishes.forEach(dish => {
-                        let price = dish.amount * dish.dish.price 
-                        totalPrice += price
-                    })
-                    // await ctx.reply("Оплата через: <b>Payme</b>\nСумма к оплате: " + totalPrice + "сум.\nЧто бы оплатить нажми кнопку \"✅ Оплатить\"", replyKeyboard.pay())
-                    let invoice = {
-                        chat_id: ctx.message.from.id, // Уникальный идентификатор целевого чата или имя пользователя целевого канала
-                        provider_token: providerToken, // токен выданный через бот @SberbankPaymentBot 
-                        start_parameter: 'get_access', //Уникальный параметр глубинных ссылок. Если оставить поле пустым, переадресованные копии отправленного сообщения будут иметь кнопку «Оплатить», позволяющую нескольким пользователям производить оплату непосредственно из пересылаемого сообщения, используя один и тот же счет. Если не пусто, перенаправленные копии отправленного сообщения будут иметь кнопку URL с глубокой ссылкой на бота (вместо кнопки оплаты) со значением, используемым в качестве начального параметра.
-                        title: `Оплата через: Payme`, // Название продукта, 1-32 символа
-                        description: `Сумма к оплате: ${totalPrice} сум.\nЧто бы оплатить нажми кнопку снизу`, // Описание продукта, 1-255 знаков
-                        currency: 'UZS', // Трехбуквенный код валюты ISO 4217
-                        prices: [{ label: 'Invoice Title', amount: parseInt(totalPrice) * 100}], // Разбивка цен, сериализованный список компонентов в формате JSON 100 копеек * 100 = 100 рублей
-                        payload: { // Полезные данные счета-фактуры, определенные ботом, 1–128 байт. Это не будет отображаться пользователю, используйте его для своих внутренних процессов.
-                          unique_id: `${ctx.message.from.id}_${order.id}`,
-                          provider_token: providerToken
-                        }
-                    }
-                    await ctx.replyWithInvoice(invoice)
                 }
                 return ctx.scene.enter("choosing_food_scene")    
             }

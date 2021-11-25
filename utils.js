@@ -115,6 +115,15 @@ module.exports = {
         return dishesInCart
     },
 
+    async getCartInfo2(user_id, order_id) {
+        const order = await Order.findByPk(order_id)
+        const cartId = order.cartId
+        const dishesInCart = await Cart.findOne({where: {id: cartId, customerUserId: user_id, status: false}, include: [
+            {model: CartDish, include: [Dish]}
+        ]})
+        return dishesInCart
+    },
+
     async getCartText(dishes) {
         let text = ''
         if(dishes.length > 0) {
@@ -201,6 +210,17 @@ module.exports = {
             customerIds.push( customer.user_id )
         })
         return customerIds
+    },
+
+    async getOrderInfo(order_id) {
+        const order = await Order.findByPk(order_id)
+        return order
+    },
+
+    async updateDelivery(order_id, deliveryPrice) {
+        const order = await Order.findByPk(order_id)
+        order.price_delivery = deliveryPrice
+        await order.save()
     }
 
 }

@@ -26,6 +26,7 @@ stage.hears("😊 Поболтаем? (📱контакты, если кто н�
 
 stage.hears("😇 Оставим отзыв?", async (ctx) => {
   await ctx.scene.leave()
+  await ctx.reply("ℹ️Вы можете оценить наш сервис обслуживания или сообщить о возможной ошибке в боте", await replyKeyboard.back())
   await ctx.scene.enter("review_scene") 
 })
 
@@ -90,6 +91,11 @@ stage.on('successful_payment', async (ctx) => {
   await ctx.telegram.sendMessage(process.env.GROUP_ID, `
   Пользователь @${ctx.message.from.username} успешно оплатил заказ №${orderId}
 `)
+  await setTimeout( async () => {
+    await ctx.scene.leave()
+    await ctx.reply("Как вам блюдо? Также просим оставить отзыв по доставке", await replyKeyboard.back())
+    await ctx.scene.enter("review_scene") 
+  }, 7200000)
   await ctx.scene.enter("choosing_food_scene")
 
 })
