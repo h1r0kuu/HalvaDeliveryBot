@@ -105,7 +105,8 @@ stage.action(/^confirm:(\d+)$/, async ctx => {
   console.log(ctx)
   const orderId = parseInt(data[0])
   const userId = parseInt(data[1])
-  ctx.telegram.sendMessage(userId, `<b>Мы начали готовить Ваш заказ.\nВремя доставки от 50 минут.Благодарим за заказ!😊</b>`, {parse_mode: "HTML"})
+  await ctx.reply(`Ваш заказ №${orderId} передан на обработку.\nСейчас Вам позвонит наш оператор.`, await replyKeyboard.mainMenu())
+  // ctx.telegram.sendMessage(userId, `<b>Мы начали готовить Ваш заказ.\nВремя доставки от 50 минут.Благодарим за заказ!😊</b>`, {parse_mode: "HTML"})
 
 })
 

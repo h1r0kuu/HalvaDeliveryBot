@@ -133,7 +133,7 @@ ${text}
 📋 Комментарий:
 ${ (userData.addInfo) ? userData.addInfo : "Пользователь не оставил комментария"}`, userContext)
 
-                // context = replyKeyboard.confirmAdmin(order.id, ctx.message.from.id)
+                context = replyKeyboard.confirmAdmin(order.id, ctx.message.from.id)
                 context.parse_mode = "HTML"
                 await ctx.telegram.sendMessage(process.env.GROUP_ID, `Заказ №${order.id}:
 💳 Способ оплаты: ${userData.paymentType}
@@ -149,9 +149,6 @@ ${ (userData.addInfo) ? userData.addInfo : "Пользователь не ост
 
 Отправьте стоимость доставких в ответ на это сообщение`, context )
                 await ctx.scene.leave()
-                if(userData.paymentType != "💳 Payme") {
-                    await ctx.reply(`Ваш заказ #${order.id} передан на обработку.\nСейчас Вам позвонит наш оператор.`, await replyKeyboard.mainMenu())
-                }
                 return ctx.scene.enter("choosing_food_scene")    
             }
         
