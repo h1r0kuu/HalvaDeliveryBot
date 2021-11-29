@@ -102,7 +102,7 @@ bot.on("message", async ctx => {
                             await ctx.telegram.sendMessage(order.customerUserId, `Оплата через: <b>Payme</b>\nСумма к оплате: ${totalPrice} сум.(включая доставку ${deliveryPrice} сум.) \nЧто бы оплатить нажми кнопку \"✅ Оплатить\"`, context)
                             await ctx.telegram.sendInvoice(order.customerUserId, invoice)
                         } else {
-                            await ctx.telegram.sendMessage(order.customerUserId, `Заказ выехал к вам. Время доставки от 50мин. Приблизительная стоимость доставки - <b>${deliveryPrice} сум.</b>`, {parse_mode: "HTML"})
+                            await ctx.telegram.sendMessage(order.customerUserId, `Курьер выехал к Вам! Ориентировочная стоимость доставки - <b>${deliveryPrice} сум.</b>`, {parse_mode: "HTML"})
                         }
                     }
                     await utils.updateDelivery(orderId, deliveryPrice)
@@ -161,7 +161,7 @@ bot.action(/^confirm:/, async ctx => {
     const messageId = await ctx.callbackQuery.message.message_id
     const orderId = parseInt(data[0])
     const userId = parseInt(data[1])
-    await ctx.telegram.sendMessage(userId,`Ваш заказ №${orderId} передан на обработку.\nСейчас Вам позвонит наш оператор.`, await replyKeyboard.mainMenu())
+    await ctx.telegram.sendMessage(userId,`Мы начали готовить Ваш заказ. Время доставки от 50 минут`, await replyKeyboard.mainMenu())
     await ctx.editMessageReplyMarkup(await replyKeyboard.removeKeyboard())
     await ctx.reply(`Заказ №${orderId} подтверждён менеджером @${ctx.callbackQuery.from.username}`)
 })

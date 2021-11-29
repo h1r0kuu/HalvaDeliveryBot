@@ -100,14 +100,25 @@ stage.on('successful_payment', async (ctx) => {
 
 })
 
-stage.action(/^confirm:(\d+)$/, async ctx => {
-  const data = ctx.match[1].split("_")
-  console.log(ctx)
+stage.action(/^confirm:/, async ctx => {
+  const data = await ctx.callbackQuery.data.split(":")[1].split("_")
+  const messageId = await ctx.callbackQuery.message.message_id
   const orderId = parseInt(data[0])
   const userId = parseInt(data[1])
-  await ctx.reply(`Ваш заказ №${orderId} передан на обработку.\nСейчас Вам позвонит наш оператор.`, await replyKeyboard.mainMenu())
-  // ctx.telegram.sendMessage(userId, `<b>Мы начали готовить Ваш заказ.\nВремя доставки от 50 минут.Благодарим за заказ!😊</b>`, {parse_mode: "HTML"})
+  await ctx.telegram.sendMessage(userId,`Мы начали готовить Ваш заказ. Время доставки от 50 минут`, await replyKeyboard.mainMenu())
+  await ctx.editMessageReplyMarkup(await replyKeyboard.removeKeyboard())
+  await ctx.reply(`Заказ №${orderId} подтверждён менеджером @${ctx.callbackQuery.from.username}`)
 
+})
+
+stage.action(/^decline:/, async ctx => {
+  const data = await ctx.callbackQuery.data.split(":")[1].split("_")
+  const messageId = await ctx.callbackQuery.message.message_id
+  const orderId = parseInt(data[0])
+  const userId = parseInt(data[1])
+  await ctx.telegram.sendMessage(userId, `<b>Ваш заказ №${orderId} отменён!</b>`, {parse_mode: "HTML"})
+  await ctx.editMessageReplyMarkup(await replyKeyboard.removeKeyboard())
+  await ctx.reply(`Заказ №${orderId} отменён менеджером @${ctx.callbackQuery.from.username}`)
 })
 
 // stage.hears("🔎 Поиск продукта по названию", async ctx => {
