@@ -103,7 +103,10 @@ bot.on("message", async ctx => {
                             await ctx.telegram.sendInvoice(order.customerUserId, invoice)
                         } else {
                             await ctx.telegram.sendMessage(order.customerUserId, `Курьер выехал к Вам! Ориентировочная стоимость доставки - <b>${deliveryPrice} сум.</b>`, {parse_mode: "HTML"})
-                        }
+                            await setTimeout( async () => {
+                                await ctx.telegram.sendMessage(order.customerUserId, "Как вам блюдо? Также просим оставить отзыв по доставке", await replyKeyboard.review())
+                            }, 7200000)
+                        }   
                     }
                     await utils.updateDelivery(orderId, deliveryPrice)
                 }

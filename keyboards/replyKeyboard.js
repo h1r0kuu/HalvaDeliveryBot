@@ -143,6 +143,12 @@ module.exports = {
         return Keyboard.make( Key.callback("✅ Оплатить", `confirm:$}`) ).inline()
     },
 
+    review() {
+        return Keyboard.make(
+            ["😇 Оставим отзыв?"]
+        )
+    },
+
     yesNo() {
         return Keyboard.reply([
             ["Приборы и салфетки нужны ✅"], 
