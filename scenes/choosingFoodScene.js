@@ -107,7 +107,7 @@ const choosingFoodScene = new WizardScene("choosing_food_scene",
         const msg = ctx.message.text
         try {
             if(msg.startsWith("❌")) {
-                const product = msg.split(" ")[1]
+                const product = msg.slice(2)
                 await utils.deleteProductFromCart(product, ctx.message.from.id)
     
                 let cart = await utils.getCartInfo(ctx.message.from.id)
