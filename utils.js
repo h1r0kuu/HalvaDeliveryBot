@@ -160,6 +160,8 @@ module.exports = {
 
     async deleteProductFromCart(product, user_id) {
         const dish = await Dish.findOne({where: {title: product.trim()}})
+        console.log(product)
+        console.log(dish)
         const productId = dish.id 
         const cartId = await(await Cart.findOne({where: {customerUserId: user_id, status: true}})).id
         await CartDish.destroy({where: {dishId: productId, cartId: cartId}})
