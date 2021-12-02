@@ -78,9 +78,13 @@ const orderScene = new WizardScene("order",
     async (ctx) => {
         try {
             const paymentType = ctx.message.text
-            ctx.scene.state.paymentType = paymentType
-            await ctx.reply("Добавить салфетки и столовые приборы?", replyKeyboard.yesNo())
-            return ctx.wizard.next()
+            if(paymentType == "💵 Наличные" || paymentType == "💳 Payme") {
+                ctx.scene.state.paymentType = paymentType
+                await ctx.reply("Добавить салфетки и столовые приборы?", replyKeyboard.yesNo())
+                return ctx.wizard.next()
+            } else {
+                await ctx.reply("Неверный тип оплаты")
+            }
         } catch(e) {
             await utils.sendError(ctx, e)
         }

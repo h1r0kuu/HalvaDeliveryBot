@@ -80,8 +80,12 @@ const mailingScene = new WizardScene("mailing_scene",
                     }       
                     contextToSend.caption = ctx.scene.state.mailingText
                     userIds.forEach( user_id => {
-                         tx.telegram.sendVideo(user_id, file_id, contextToSend)
-                        count += 1
+                        try {
+                            ctx.telegram.sendVideo(user_id, file_id, contextToSend)
+                            count += 1
+                        } catch(e) {
+                            console.log("can`t send message to user " + user_id)
+                        }
                     })
                 } else {
                     await ctx.reply("Неверный формат файла")
