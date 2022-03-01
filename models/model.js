@@ -43,7 +43,7 @@ const Category = sequelize.define("category", {
 })
 
 const Dish = sequelize.define("dish", {
-    //Структура данных Страв
+    //Структура данных Блюд
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
