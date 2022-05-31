@@ -141,7 +141,8 @@ const dishName = new WizardScene("choose_dish_by_name",
                 if(priceInt > 1000) {
                     await ctx.scene.leave()
                     dishInfo.price = priceInt
-                    await dishInfo.save()
+                    const updatedDish = await dishInfo.save()
+                    console.log(updatedDish)
                     await ctx.reply("Цена успешно изменена!", await replyKeyboard.adminPanel())
                 } else {
                     await ctx.reply("Слишком низкая сумма")
